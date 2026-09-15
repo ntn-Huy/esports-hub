@@ -58,15 +58,22 @@ const Store = {
     return this.getData().teams.find((t) => t.id === id) || null;
   },
 
+  /** Trận chưa gán "stage" (vd: nhập tay thiếu trường) được coi là "group" mặc định. */
+  matchStage(m) {
+    return m.stage || "group";
+  },
+
   getMatches({ week, stage } = {}) {
     let matches = this.getData().matches.slice();
-    if (week) matches = matches.filter((m) => m.week === week);
-    if (stage) matches = matches.filter((m) => m.stage === stage);
+    // So sánh == (không ==) để không bị lệch nếu tuần được lưu dạng chuỗi "1" thay vì số 1
+    if (week) matches = matches.filter((m) => m.week == week);
+    if (stage) matches = matches.filter((m) => this.matchStage(m) === stage);
     return matches.sort((a, b) => (a.date || "").localeCompare(b.date || ""));
   },
 
   getWeeks() {
-    const weeks = new Set(this.getData().matches.map((m) => m.week));
+    // Number(...) để gộp lại nếu vài trận lỡ lưu "week" dạng chuỗi thay vì số
+    const weeks = new Set(this.getData().matches.map((m) => Number(m.week)));
     return Array.from(weeks).sort((a, b) => a - b);
   },
 
@@ -81,7 +88,7 @@ const Store = {
       };
     });
     data.matches
-      .filter((m) => m.stage === "group" && m.status === "finished" && m.score1 !== null && m.score2 !== null)
+      .filter((m) => this.matchStage(m) === "group" && m.status === "finished" && m.score1 !== null && m.score2 !== null)
       .forEach((m) => {
         const a = table[m.team1];
         const b = table[m.team2];
