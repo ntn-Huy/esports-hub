@@ -69,7 +69,7 @@
       tabsEl.querySelectorAll(".week-tab").forEach((btn) => {
         btn.classList.toggle("is-active", Number(btn.dataset.week) === w);
       });
-      const matches = Store.getMatches({ week: w, stage: "group" });
+    const matches = Store.getMatches({ week: w });
       matchesEl.innerHTML = matches.length
         ? matches.map((m) => Render.matchCard(m)).join("")
         : `<div class="empty-state"><b>Chưa có trận</b>Tuần này chưa có lịch thi đấu.</div>`;
