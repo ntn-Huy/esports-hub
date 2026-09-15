@@ -176,7 +176,7 @@ const Admin = {
 
     listEl.innerHTML = `
       <table class="table-simple">
-        <thead><tr><th>Tuần</th><th>Ngày</th><th>Đội 1</th><th>Tỉ số</th><th>Đội 2</th><th>Trạng thái</th><th></th></tr></thead>
+        <thead><tr><th>Tuần</th><th>Ngày</th><th>Giai đoạn</th><th>Đội 1</th><th>Tỉ số</th><th>Đội 2</th><th>Trạng thái</th><th></th></tr></thead>
         <tbody>
           ${data.matches
             .map(
@@ -184,6 +184,7 @@ const Admin = {
             <tr data-row-match="${m.id}">
               <td>${m.week}</td>
               <td>${m.date || ""}</td>
+              <td>${Store.matchStage(m) === "group" ? "Vòng bảng" : Store.matchStage(m)}${m.stage ? "" : ' <span class="badge-count">mặc định</span>'}</td>
               <td>${m.team1 ? Store.getTeam(m.team1)?.short || "?" : "TBD"}</td>
               <td>${m.score1 ?? "-"} : ${m.score2 ?? "-"}</td>
               <td>${m.team2 ? Store.getTeam(m.team2)?.short || "?" : "TBD"}</td>
