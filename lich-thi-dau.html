@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lịch & Kết quả — Esports Hub</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <nav id="site-nav"></nav>
+  </header>
+
+  <section class="section" style="padding-top:40px">
+    <div class="container">
+      <h1 class="section__title" style="font-size:32px">Lịch thi đấu & Kết quả</h1>
+      <p class="hero__desc">Chọn tuần để xem các trận trong vòng bảng, hoặc cuộn xuống để xem nhánh playoff và bảng xếp hạng đầy đủ.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="week-tabs" id="week-tabs"></div>
+      <div class="match-grid" id="week-matches"></div>
+    </div>
+  </section>
+
+  <section class="section" id="playoff">
+    <div class="container">
+      <div class="section__head">
+        <h2 class="section__title">Nhánh Playoff</h2>
+      </div>
+      <div id="bracket-view"></div>
+    </div>
+  </section>
+
+  <section class="section" id="standings">
+    <div class="container">
+      <div class="section__head">
+        <h2 class="section__title">Bảng xếp hạng đầy đủ</h2>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="standings" id="standings-full"></table>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="container">Esports Hub · Dữ liệu do ban quản trị cập nhật thủ công.</div>
+  </footer>
+
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/store.js"></script>
+  <script src="assets/js/render.js"></script>
+  <script>
+    Render.init("schedule");
+    const data = Store.getData();
+    document.title = data.season.name + " — Lịch & Kết quả";
+
+    // ----- Week tabs -----
+    const weeks = Store.getWeeks();
+    let activeWeek = weeks[0] || null;
+    const tabsEl = document.getElementById("week-tabs");
+    const matchesEl = document.getElementById("week-matches");
+
+    function renderWeek(w) {
+      activeWeek = w;
+      tabsEl.querySelectorAll(".week-tab").forEach((btn) => {
+        btn.classList.toggle("is-active", Number(btn.dataset.week) === w);
+      });
+      const matches = Store.getMatches({ week: w, stage: "group" });
+      matchesEl.innerHTML = matches.length
+        ? matches.map((m) => Render.matchCard(m)).join("")
+        : `<div class="empty-state"><b>Chưa có trận</b>Tuần này chưa có lịch thi đấu.</div>`;
+    }
+
+    if (weeks.length) {
+      tabsEl.innerHTML = weeks
+        .map((w) => `<button class="week-tab" data-week="${w}">Tuần ${w}</button>`)
+        .join("");
+      tabsEl.querySelectorAll(".week-tab").forEach((btn) =>
+        btn.addEventListener("click", () => renderWeek(Number(btn.dataset.week)))
+      );
+      renderWeek(weeks[0]);
+    } else {
+      matchesEl.innerHTML = `<div class="empty-state"><b>Chưa có dữ liệu</b>Hãy thêm trận đấu trong trang Quản trị.</div>`;
+    }
+
+    // ----- Bracket view (read-only) -----
+    const bracketEl = document.getElementById("bracket-view");
+    function slotLabel(teamId) {
+      if (!teamId) return `<span class="name">${Render.teamBadge(null, "sm")} Chưa xác định</span>`;
+      return `<span class="name">${Render.teamBadge(teamId, "sm")} ${Store.getTeam(teamId)?.short || "?"}</span>`;
+    }
+    function bracketMatchHTML(m) {
+      const s1 = m.score1 ?? "-";
+      const s2 = m.score2 ?? "-";
+      return `
+        <div class="bracket-match">
+          <div class="bracket-slot">${slotLabel(m.team1)}<b>${s1}</b></div>
+          <div class="bracket-slot">${slotLabel(m.team2)}<b>${s2}</b></div>
+        </div>`;
+    }
+    if (data.season.format.playoffEnabled) {
+      const b = data.bracket;
+      bracketEl.innerHTML = `
+        <div class="bracket">
+          <div class="bracket-col">
+            <div class="bracket-col__label">Nhánh thắng</div>
+            ${b.upper.map(bracketMatchHTML).join("")}
+          </div>
+          <div class="bracket-col">
+            <div class="bracket-col__label">Nhánh thua</div>
+            ${b.lower.map(bracketMatchHTML).join("")}
+          </div>
+          <div class="bracket-col">
+            <div class="bracket-col__label">Chung kết tổng</div>
+            ${bracketMatchHTML(b.grandFinal)}
+          </div>
+        </div>`;
+    } else {
+      bracketEl.innerHTML = `<div class="empty-state"><b>Chưa bật vòng playoff</b>Ban quản trị có thể bật thể thức playoff trong trang Quản trị.</div>`;
+    }
+
+    // ----- Full standings -----
+    const standings = Store.computeStandings();
+    document.getElementById("standings-full").innerHTML = `
+      <thead><tr>
+        <th class="rank">#</th><th>Đội</th><th class="num">Trận</th>
+        <th class="num">Thắng</th><th class="num">Thua</th><th class="num">Hiệu số ván</th><th class="num">Điểm</th>
+      </tr></thead>
+      <tbody>
+        ${standings
+          .map(
+            (row, i) => `
+          <tr>
+            <td class="rank">${i + 1}</td>
+            <td class="team-cell">${Render.teamBadge(row.team.id, "sm")} ${row.team.name}</td>
+            <td class="num">${row.played}</td>
+            <td class="num">${row.win}</td>
+            <td class="num">${row.loss}</td>
+            <td class="num">${row.mapWin - row.mapLoss >= 0 ? "+" : ""}${row.mapWin - row.mapLoss}</td>
+            <td class="num">${row.points}</td>
+          </tr>`
+          )
+          .join("")}
+      </tbody>
+    `;
+  </script>
+</body>
+</html>

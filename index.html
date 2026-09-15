@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Esports Hub — Trang chủ</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+  <div class="top-strip">
+    <div class="container">
+      <span>Nhà tài trợ chính thức</span>
+      <span class="sponsors">realme · Shopee</span>
+    </div>
+  </div>
+
+  <header class="site-header">
+    <nav id="site-nav"></nav>
+  </header>
+
+  <section class="hero">
+    <div class="container">
+      <div class="hero__eyebrow-row" id="esport-switch"></div>
+      <h1 class="hero__title" id="hero-title">Giải đấu mùa đông 2026</h1>
+      <p class="hero__subtitle" id="hero-subtitle">VÒNG BẢNG — LƯỢT ĐI</p>
+      <p class="hero__desc">
+        Theo dõi lịch thi đấu, cập nhật tỉ số theo thời gian thực và tham gia
+        dự đoán kết quả từng trận, từng vòng bảng và cả nhánh playoff.
+      </p>
+      <div class="hero__cta">
+        <a href="lich-thi-dau.html" class="btn btn--primary">Xem lịch thi đấu</a>
+        <a href="du-doan.html" class="btn btn--ghost">Dự đoán ngay</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="score-banner" id="score-banner"></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section__head">
+        <h2 class="section__title">Kết quả mới nhất</h2>
+        <a href="lich-thi-dau.html" class="section__link">Xem tất cả →</a>
+      </div>
+      <div class="match-grid" id="latest-results"></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section__head">
+        <h2 class="section__title">Trận sắp diễn ra</h2>
+        <a href="lich-thi-dau.html" class="section__link">Xem tất cả →</a>
+      </div>
+      <div class="match-grid" id="upcoming-matches"></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section__head">
+        <h2 class="section__title">Bảng xếp hạng</h2>
+        <a href="lich-thi-dau.html#standings" class="section__link">Chi tiết →</a>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="standings" id="standings-table"></table>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="container">
+      Esports Hub · Trang cộng đồng phi lợi nhuận, dữ liệu cập nhật thủ công bởi ban quản trị giải.
+    </div>
+  </footer>
+
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/store.js"></script>
+  <script src="assets/js/render.js"></script>
+  <script>
+    Render.init("home");
+
+    const data = Store.getData();
+    document.getElementById("hero-title").textContent = data.season.name;
+    document.getElementById("hero-subtitle").textContent = data.season.subtitle;
+    document.title = data.season.name + " — Esports Hub";
+
+    // ----- Score banner (tổng quan nhanh) -----
+    const allMatches = data.matches;
+    const finishedCount = allMatches.filter((m) => m.status === "finished").length;
+    const upcomingCount = allMatches.filter((m) => m.status === "upcoming").length;
+    document.getElementById("score-banner").innerHTML = `
+      <div class="score-banner__stat"><b>${data.teams.length}</b><span>Đội tham dự</span></div>
+      <div class="score-banner__stat"><b>${finishedCount}</b><span>Trận đã đấu</span></div>
+      <div class="score-banner__stat"><b>${upcomingCount}</b><span>Trận sắp tới</span></div>
+      <div class="score-banner__stat"><b>${data.season.format.totalWeeks}</b><span>Tuần vòng bảng</span></div>
+      <a href="du-doan.html" class="btn btn--primary btn--sm">Dự đoán tuần này</a>
+    `;
+
+    // ----- Latest results -----
+    const finished = allMatches.filter((m) => m.status === "finished").slice(-3).reverse();
+    const resultsEl = document.getElementById("latest-results");
+    resultsEl.innerHTML = finished.length
+      ? finished.map((m) => Render.matchCard(m, { showWeek: true })).join("")
+      : `<div class="empty-state"><b>Chưa có kết quả</b>Kết quả trận đấu sẽ hiện ở đây sau khi ban quản trị cập nhật.</div>`;
+
+    // ----- Upcoming matches -----
+    const upcoming = allMatches.filter((m) => m.status !== "finished").slice(0, 3);
+    const upcomingEl = document.getElementById("upcoming-matches");
+    upcomingEl.innerHTML = upcoming.length
+      ? upcoming.map((m) => Render.matchCard(m, { showWeek: true })).join("")
+      : `<div class="empty-state"><b>Chưa có lịch</b>Trận đấu sắp tới sẽ hiện ở đây.</div>`;
+
+    // ----- Standings preview -----
+    const standings = Store.computeStandings().slice(0, 8);
+    const table = document.getElementById("standings-table");
+    table.innerHTML = `
+      <thead><tr>
+        <th class="rank">#</th><th>Đội</th>
+        <th class="num">Thắng</th><th class="num">Thua</th><th class="num">Hiệu số</th><th class="num">Điểm</th>
+      </tr></thead>
+      <tbody>
+        ${standings
+          .map(
+            (row, i) => `
+          <tr>
+            <td class="rank">${i + 1}</td>
+            <td class="team-cell">${Render.teamBadge(row.team.id, "sm")} ${row.team.name}</td>
+            <td class="num">${row.win}</td>
+            <td class="num">${row.loss}</td>
+            <td class="num">${row.mapWin - row.mapLoss >= 0 ? "+" : ""}${row.mapWin - row.mapLoss}</td>
+            <td class="num">${row.points}</td>
+          </tr>`
+          )
+          .join("")}
+      </tbody>
+    `;
+  </script>
+</body>
+</html>

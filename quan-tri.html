@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quản trị — Esports Hub</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <nav id="site-nav"></nav>
+  </header>
+
+  <section class="section" style="padding-top:40px">
+    <div class="container">
+      <h1 class="section__title" style="font-size:32px">Trang quản trị</h1>
+      <p class="hero__desc">Thêm/sửa đội tuyển, trận đấu, thể thức mùa giải và nhánh playoff. Dữ liệu lưu trên trình duyệt này — nhớ "Xuất file data.js" rồi đẩy lên GitHub để mọi người cùng thấy.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+
+      <div id="admin-gate" class="panel" style="max-width:360px">
+        <label for="admin-password">Mật khẩu quản trị</label>
+        <input type="password" id="admin-password" placeholder="Nhập mật khẩu...">
+        <p id="admin-login-error" style="color:var(--loss);font-size:13px;min-height:18px;margin-top:6px"></p>
+        <button class="btn btn--primary btn--sm" id="admin-login-btn">Đăng nhập</button>
+        <p class="hint">Mật khẩu mặc định đặt trong assets/js/admin.js — hãy đổi trước khi công khai repo.</p>
+      </div>
+
+      <div id="admin-panel" style="display:none">
+        <p id="admin-toast" style="min-height:20px;font-weight:600;transition:opacity .3s;margin-bottom:8px"></p>
+
+        <div class="tabs">
+          <button class="tab-btn is-active" data-tab="season">Mùa giải</button>
+          <button class="tab-btn" data-tab="teams">Đội tuyển</button>
+          <button class="tab-btn" data-tab="matches">Trận đấu</button>
+          <button class="tab-btn" data-tab="bracket">Playoff</button>
+          <button class="tab-btn" data-tab="data">Xuất / Nhập dữ liệu</button>
+        </div>
+
+        <div class="tab-panel is-active" id="admtab-season">
+          <div class="panel" id="season-form"></div>
+        </div>
+
+        <div class="tab-panel" id="admtab-teams">
+          <div class="panel" style="margin-bottom:16px">
+            <h4 id="team-form-title" style="margin-bottom:12px">Thêm đội mới</h4>
+            <input type="hidden" id="t-id">
+            <div class="field-row">
+              <div><label>Tên đầy đủ</label><input id="t-name" placeholder="VD: FALCON GAMING"></div>
+              <div><label>Viết tắt</label><input id="t-short" placeholder="VD: FGC" maxlength="6"></div>
+              <div><label>Huy hiệu (2-3 ký tự hoặc đường dẫn ảnh)</label><input id="t-logo" placeholder="VD: FG"></div>
+              <div><label>Mã màu</label><input id="t-color" type="color" value="#3E8EF7"></div>
+            </div>
+            <button class="btn btn--primary btn--sm" id="team-form-save">Lưu đội</button>
+            <button class="btn btn--ghost btn--sm" id="team-form-clear">Làm mới form</button>
+          </div>
+          <div id="teams-list"></div>
+        </div>
+
+        <div class="tab-panel" id="admtab-matches">
+          <div class="panel" style="margin-bottom:16px">
+            <h4 id="match-form-title" style="margin-bottom:12px">Thêm trận mới</h4>
+            <input type="hidden" id="m-id">
+            <div class="field-row">
+              <div><label>Tuần</label><input id="m-week" type="number" min="1" value="1"></div>
+              <div><label>Ngày</label><input id="m-date" type="date"></div>
+              <div><label>Giai đoạn</label>
+                <select id="m-stage">
+                  <option value="group">Vòng bảng</option>
+                  <option value="playoff-upper">Playoff - Nhánh thắng</option>
+                  <option value="playoff-lower">Playoff - Nhánh thua</option>
+                  <option value="grand-final">Chung kết tổng</option>
+                </select>
+              </div>
+              <div><label>Trạng thái</label>
+                <select id="m-status">
+                  <option value="upcoming">Sắp diễn ra</option>
+                  <option value="live">Đang diễn ra</option>
+                  <option value="finished">Kết thúc</option>
+                </select>
+              </div>
+            </div>
+            <div class="field-row">
+              <div><label>Đội 1</label><select id="m-team1"></select></div>
+              <div><label>Tỉ số đội 1</label><input id="m-score1" type="number" min="0"></div>
+              <div><label>Đội 2</label><select id="m-team2"></select></div>
+              <div><label>Tỉ số đội 2</label><input id="m-score2" type="number" min="0"></div>
+            </div>
+            <button class="btn btn--primary btn--sm" id="match-form-save">Lưu trận đấu</button>
+            <button class="btn btn--ghost btn--sm" id="match-form-clear">Làm mới form</button>
+          </div>
+          <div id="matches-list"></div>
+        </div>
+
+        <div class="tab-panel" id="admtab-bracket">
+          <div id="bracket-editor"></div>
+        </div>
+
+        <div class="tab-panel" id="admtab-data">
+          <div class="panel">
+            <h4 style="margin-bottom:10px">Xuất dữ liệu để đẩy lên GitHub</h4>
+            <p class="hint">Bấm nút dưới để tải file <code>data.js</code> mới — dán đè vào <code>assets/js/data.js</code> trong repo rồi commit + push. Đây là cách để MỌI người xem thấy dữ liệu mới (localStorage chỉ máy bạn thấy).</p>
+            <button class="btn btn--primary btn--sm" id="export-js-btn">Xuất file data.js</button>
+            <hr style="border-color:var(--border);margin:18px 0">
+            <h4 style="margin-bottom:10px">Sao lưu / phục hồi (JSON)</h4>
+            <p class="hint">Dùng để sao lưu nhanh hoặc chuyển dữ liệu sang trình duyệt/máy khác.</p>
+            <button class="btn btn--ghost btn--sm" id="export-json-btn">Tải backup.json</button>
+            <label class="btn btn--ghost btn--sm" style="display:inline-flex;cursor:pointer">
+              Nhập file JSON
+              <input type="file" id="import-json-input" accept="application/json" style="display:none">
+            </label>
+            <hr style="border-color:var(--border);margin:18px 0">
+            <h4 style="margin-bottom:10px">Khôi phục mặc định</h4>
+            <button class="btn btn--danger btn--sm" id="reset-data-btn">Xóa hết chỉnh sửa, quay về data.js gốc</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="container">Esports Hub · Khu vực quản trị.</div>
+  </footer>
+
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/store.js"></script>
+  <script src="assets/js/render.js"></script>
+  <script src="assets/js/admin.js"></script>
+  <script>
+    Render.init("admin");
+    Admin.init();
+    Admin.bindTeamForm();
+    Admin.bindMatchForm();
+    Admin.bindDataTools();
+
+    document.querySelectorAll(".tab-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("is-active"));
+        document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("is-active"));
+        btn.classList.add("is-active");
+        document.getElementById("admtab-" + btn.dataset.tab).classList.add("is-active");
+      });
+    });
+  </script>
+</body>
+</html>

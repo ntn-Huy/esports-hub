@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dự đoán — Esports Hub</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <nav id="site-nav"></nav>
+  </header>
+
+  <section class="section" style="padding-top:40px">
+    <div class="container">
+      <h1 class="section__title" style="font-size:32px">Dự đoán kết quả</h1>
+      <p class="hero__desc">Chọn đội bạn nghĩ sẽ thắng ở từng trận, dự đoán Top 4 vòng bảng, và cả nhánh playoff. Điểm được tính khi có kết quả thật.</p>
+      <p class="hint" style="margin-top:10px">⚠️ Dự đoán chỉ lưu trên trình duyệt của bạn (không dùng chung với người khác) — xem mục "Nâng cấp" trong README nếu ban quản trị muốn làm bảng xếp hạng chung.</p>
+      <p id="predict-name-bar" style="margin-top:14px;font-size:14px"></p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="score-banner" id="predict-score"></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="tabs">
+        <button class="tab-btn is-active" data-tab="weekly">Dự đoán theo tuần</button>
+        <button class="tab-btn" data-tab="top4">Dự đoán vòng bảng</button>
+        <button class="tab-btn" data-tab="bracket">Dự đoán Playoff</button>
+      </div>
+
+      <div class="tab-panel is-active" id="tab-weekly">
+        <div class="week-tabs" id="predict-week-tabs"></div>
+        <div id="predict-week-list" style="display:flex;flex-direction:column;gap:10px"></div>
+      </div>
+
+      <div class="tab-panel" id="tab-top4">
+        <p class="hint" style="margin-bottom:14px">Chọn 4 đội bạn nghĩ sẽ đứng đầu vòng bảng, đúng thứ hạng.</p>
+        <div id="top4-picker"></div>
+      </div>
+
+      <div class="tab-panel" id="tab-bracket">
+        <p class="hint" style="margin-bottom:14px">Bấm vào đội bạn nghĩ sẽ thắng ở mỗi trận playoff (chỉ chọn được khi hai đội đã xác định).</p>
+        <div id="predict-bracket"></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="container">Esports Hub · Dự đoán mang tính giải trí, không có giá trị cá cược.</div>
+  </footer>
+
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/store.js"></script>
+  <script src="assets/js/render.js"></script>
+  <script src="assets/js/predict.js"></script>
+  <script>
+    Render.init("predict");
+    document.title = Store.getData().season.name + " — Dự đoán";
+    Predict.render();
+
+    document.querySelectorAll(".tab-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("is-active"));
+        document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("is-active"));
+        btn.classList.add("is-active");
+        document.getElementById("tab-" + btn.dataset.tab).classList.add("is-active");
+      });
+    });
+  </script>
+</body>
+</html>
